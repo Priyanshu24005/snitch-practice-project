@@ -1,8 +1,8 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "http://localhost:5173/api",
+  baseURL: import.meta.env.VITE_API_URL || "/api",
+  withCredentials: true,
 });
 
 api.interceptors.request.use(
@@ -24,23 +24,17 @@ api.interceptors.response.use(
   (response) => response,
 
   async (error) => {
-    console.log("INTERCEPTOR STATUS:", error.response?.status);
-    console.log("INTERCEPTOR URL:", error.config?.url);
-
     const originalRequest = error.config;
 
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !originalRequest.url.includes("/auth/refresh")
     ) {
       originalRequest._retry = true;
 
       try {
-        console.log("REFRESH CALLING...");
-
         const response = await api.post("/auth/refresh");
-
-        console.log("REFRESH RESPONSE:", response.data);
 
         const newAccessToken = response.data.accessToken;
 
@@ -51,11 +45,7 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        console.log(
-          "REFRESH FAILED:",
-          refreshError.response?.data
-        );
-
+        localStorage.removeItem("accessToken");
         return Promise.reject(refreshError);
       }
     }
