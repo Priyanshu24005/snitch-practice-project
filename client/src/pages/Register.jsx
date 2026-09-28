@@ -179,7 +179,7 @@ const Register = () => {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{" "}
-          <span className="text-black font-semibold cursor-pointer hover:underline">
+          <span className="text-black font-semibold cursor-pointer hover:underline" onClick={()=>navigate("/login")}>
             Login
           </span>
         </p>
